@@ -1,4 +1,5 @@
 import qualified Math.Combinatorics.Poset as PS
+import qualified Data.Set as Set
 
 -- biggerThanAll p z xs tells if z is greater than or equal to all x from xs
 biggerThanAll:: PS.Poset t1 -> t1 -> [t1] -> Bool
@@ -32,3 +33,25 @@ leftAdjoint f a = Nothing
 
 rightAdjoint:: (PS.Poset t1 -> PS.Poset t2) -> (PS.Poset t2 -> Maybe (PS.Poset t1))
 rightAdjoint f a = Nothing
+
+-- make the powerset of a set given as lists
+myPowerset :: [a] -> [[a]]
+myPowerset [] = [[]]
+myPowerset (x:xs) = powerset xs ++ map (x:) (powerset xs)
+
+--listSubset:: Ord a => [a] -> [a] -> Bool
+--listSubset x y = Set.isSubsetOf (Set.fromList x) (Set.fromList y)
+
+-- give the poset structure of such a poset
+-- the implementation in Data.Set uses total order on X and Y
+--powerSetPoset :: [Ord a] => Set a -> PS.Poset (Set a)
+--powerSetPoset xs = PS.Poset (Set.elems $ Set.powerset xs,Set.isSubsetOf)
+
+--fUStar :: ([a1] -> [a2]) -> PS.Poset [a2] -> PS.Poset [a1]
+--fUStar f ys = [x | f x in ys]
+
+--fLStar :: ([a1] -> [a2]) -> PS.Poset [a1] -> PS.Poset [a2]
+--fLStar f xs = [ y | and $ [ x in xs | y = f x]]
+
+--fLShriek :: ([a1] -> [a2]) -> PS.Poset [a1] -> PS.Poset [a2]
+--fLStar f xs = [ y | or $ [ x in xs | y = f x]]
