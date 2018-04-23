@@ -32,6 +32,10 @@ subsetsBySize n = map (map (Subset n))
 level :: PS.Poset t -> t -> t -> Int
 level ps bottom current = length $ PS.interval ps (bottom,current)
 
+level2 :: PS.Poset t -> t -> t -> Int
+level2 ps bottom bottom = 0
+level2 (PS.Poset (set,po)) bottom current = minimum $ 0:[1+ level2 (PS.Poset (set,po)) bottom x | x<- set, x `po` current, x /= current]
+
 breakPosetByLevel :: PS.Poset t -> t -> [[t]]
 breakPosetByLevel (PS.Poset (set,po)) bottom = groupBy (\x y -> (myLevel x == myLevel y)) $ sortBy (\x y -> (compare (myLevel x) (myLevel y))) set
                                               where myLevel = (\z -> (level (PS.Poset (set,po)) bottom z))
