@@ -32,13 +32,12 @@ subsetsBySize n = map (map (Subset n))
 level :: PS.Poset t -> t -> t -> Int
 level ps bottom current = length $ PS.interval ps (bottom,current)
 
-level2 :: PS.Poset t -> t -> t -> Int
-level2 ps bottom bottom = 0
-level2 (PS.Poset (set,po)) bottom current = minimum $ 0:[1+ level2 (PS.Poset (set,po)) bottom x | x<- set, x `po` current, x /= current]
+level2 :: Eq t => PS.Poset t -> t -> t -> Int
+level2 (PS.Poset (set,po)) bottom current = maximum $ 0:[1+ level2 (PS.Poset (set,po)) bottom x | x<- set, x `po` current, x /= current]
 
-breakPosetByLevel :: PS.Poset t -> t -> [[t]]
+breakPosetByLevel :: Eq t => PS.Poset t -> t -> [[t]]
 breakPosetByLevel (PS.Poset (set,po)) bottom = groupBy (\x y -> (myLevel x == myLevel y)) $ sortBy (\x y -> (compare (myLevel x) (myLevel y))) set
-                                              where myLevel = (\z -> (level (PS.Poset (set,po)) bottom z))
+                                              where myLevel = (\z -> (level2 (PS.Poset (set,po)) bottom z))
 
 node :: Int -> Diagram B
 node n = text (show n) # fontSizeL 0.2 # fc white <> square 1 # fc blue
@@ -82,7 +81,7 @@ connectSome subs1 subs2 = [ (name s1, name s2) | s1 <- subs1
 withConnections n = (hasseDiagram n) # applyAll [connectOutside' (with & gaps       .~ small
                           & headLength .~ local 0.15) j k | (j,k) <- toConnect n]
 
-toConnect2:: PS.Poset t -> t -> [(t,t)]
+toConnect2:: Eq t => PS.Poset t -> t -> [(t,t)]
 toConnect2 ps bottom = concat $ zipWith (connectSome2 ps) (broken) (tail $ broken) where broken=(breakPosetByLevel ps bottom)
 connectSome2 :: PS.Poset t -> [t] -> [t] -> [(t,t)]
 connectSome2 (PS.Poset (set,po)) layeri layerj = [ (s1, s2) | s1 <- layeri
