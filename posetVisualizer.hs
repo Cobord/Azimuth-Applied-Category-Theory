@@ -39,7 +39,7 @@ breakPosetByLevel :: Eq t => PS.Poset t -> t -> [[t]]
 breakPosetByLevel (PS.Poset (set,po)) bottom = groupBy (\x y -> (myLevel x == myLevel y)) $ sortBy (\x y -> (compare (myLevel x) (myLevel y))) set
                                               where myLevel = (\z -> (level2 (PS.Poset (set,po)) bottom z))
 
-node :: Int -> Diagram B
+node :: Show t => t -> Diagram B
 node n = text (show n) # fontSizeL 0.2 # fc white <> square 1 # fc blue
 
 drawElts n elts = hcat
@@ -90,9 +90,7 @@ connectSome2 (PS.Poset (set,po)) layeri layerj = [ (s1, s2) | s1 <- layeri
 withConnections2 ps bottom = (hasseDiagram2 ps bottom) # applyAll [connectOutside' (with & gaps       .~ small
                           & headLength .~ local 0.15) j k | (j,k) <- toConnect2 ps bottom]
 
---example = pad 1.1 $ hasseDiagram2 (PS.posetD 24) 1
-example = pad 1.1 $ withConnections2 (PS.posetD 24) 1
---example = pad 1.1 $ withConnections 4
---myExample n = pad 1.1 $ withConnections n
+--example = pad 1.1 $ withConnections2 (PS.posetD 24) 1
+example = pad 1.1 $ withConnections2 (PS.posetB 5) []
 
 main = mainWith (example :: Diagram B)
