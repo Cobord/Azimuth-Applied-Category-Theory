@@ -66,6 +66,26 @@ powerSetPoset xs = PS.dual $ PS.Poset (Set.elems $ myPowerset xs,Set.isSubsetOf)
 fUStar :: (Ord a1, Ord a2) => (a1 -> a2) -> Set.Set a1 -> Set.Set a2 -> Set.Set a1
 fUStar f xSet ys = Set.fromList [x | x <- Set.toList xSet , Set.member (f x) ys]
 
---fLStar 
+--should only be one set in the output list, but can't guarantee that because left and right adjoint output lists
+fLStar :: (Ord a1, Ord a2) => (a1 -> a2) -> Set.Set a1 -> Set.Set a2 -> Set.Set a1 -> [Set.Set a2]
+fLStar f xSet ySet xs = rightAdjoint (powerSetPoset ySet) (powerSetPoset xSet) (\ys -> (fUStar f xSet ys)) xs
 
---fLShriek
+--should only be one set in the output list, but can't guarantee that because left and right adjoint output lists
+fLShriek :: (Ord a1, Ord a2) => (a1 -> a2) -> Set.Set a1 -> Set.Set a2 -> Set.Set a1 -> [Set.Set a2]
+fLShriek f xSet ySet xs = leftAdjoint (powerSetPoset ySet) (powerSetPoset xSet) (\ys -> (fUStar f xSet ys)) xs
+
+--Exercise 1.95
+exampleYSet = Set.fromList [1,2,3,4]
+exampleXSet = Set.fromList [5,6]
+exampleFunction 5 = 2
+exampleFunction 6 = 2
+exampleB1 = Set.fromList [1,2,3]
+exampleB2 = Set.fromList [1,3]
+exampleA1 = Set.fromList [6]
+exampleA2 = Set.fromList [5,6]
+parta1 = fUStar exampleFunction exampleXSet exampleB1
+parta2 = fUStar exampleFunction exampleXSet exampleB2
+partb1 = fLShriek exampleFunction exampleXSet exampleYSet exampleA1
+partb2 = fLShriek exampleFunction exampleXSet exampleYSet exampleA2
+partc1 = fLStar exampleFunction exampleXSet exampleYSet exampleA1
+partc2 = fLStar exampleFunction exampleXSet exampleYSet exampleA2
