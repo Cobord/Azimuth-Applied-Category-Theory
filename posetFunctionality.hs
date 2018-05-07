@@ -27,31 +27,45 @@ example xs = join (PS.dual $ PS.posetD 24) xs
 meet:: PS.Poset t1 -> [t1] -> [t1]
 meet p xs = join (PS.dual p) xs
 
--- placeholder for Galois connections
-leftAdjoint:: (PS.Poset t1 -> PS.Poset t2) -> (PS.Poset t2 -> Maybe (PS.Poset t1))
-leftAdjoint f a = Nothing
+leftAdjointHelper p1@(PS.Poset (p1Set,p1po)) p2@(PS.Poset (p2Set,p2po)) g p = show [q | q <- p1Set , (g q) `p2po` p]
 
-rightAdjoint:: (PS.Poset t1 -> PS.Poset t2) -> (PS.Poset t2 -> Maybe (PS.Poset t1))
-rightAdjoint f a = Nothing
+-- assume g is a right adjoint of something, find it's left adjoint
+leftAdjoint:: PS.Poset t1 -> PS.Poset t2 -> (t1 -> t2) -> t2 -> [t1]
+leftAdjoint p1@(PS.Poset (p1Set,p1po)) p2@(PS.Poset (p2Set,p2po)) g p = meet p1 qs
+                                                                     where qs = [q | q <- p1Set , (g q) `p2po` p]
 
--- make the powerset of a set given as lists
-myPowerset :: [a] -> [[a]]
-myPowerset [] = [[]]
-myPowerset (x:xs) = powerset xs ++ map (x:) (powerset xs)
+rightAdjointHelper p1@(PS.Poset (p1Set,p1po)) p2@(PS.Poset (p2Set,p2po)) f q = show [p | p <- p1Set , q `p2po` (f p)]
 
---listSubset:: Ord a => [a] -> [a] -> Bool
---listSubset x y = Set.isSubsetOf (Set.fromList x) (Set.fromList y)
+-- assume f is a left adjoint of something, find it's right adjoint
+rightAdjoint:: PS.Poset t1 -> PS.Poset t2 -> (t1 -> t2) -> t2 -> [t1]
+rightAdjoint p1@(PS.Poset (p1Set,p1po)) p2@(PS.Poset (p2Set,p2po)) f q = join p1 [p | p <- p1Set , q `p2po` (f p)]
+
+-- Exercise 1.77
+data SimpleExample = Zero | One | Two deriving (Show,Eq)
+simpleExampleOrder Zero _ = True
+simpleExampleOrder One One = True
+simpleExampleOrder One Two = True
+simpleExampleOrder Two Two = True
+simpleExampleOrder _ _ = False
+simpleExamplePoset = PS.dual ( PS.Poset ([Zero,One,Two],simpleExampleOrder) )
+sampleF Zero = Zero
+sampleF One = Zero
+sampleF Two = Two
+
+myPowerset :: (Ord a) => Set.Set a -> Set.Set (Set.Set a)
+myPowerset s = Set.fromList $ map (Set.fromList) (powerList $ Set.toList s)
+powerList :: [a] -> [[a]]
+powerList [] = [[]]
+powerList (x:xs) = powerList xs ++ map (x:) (powerList xs)
 
 -- give the poset structure of such a poset
 -- the implementation in Data.Set uses total order on X and Y
---powerSetPoset :: [Ord a] => Set a -> PS.Poset (Set a)
---powerSetPoset xs = PS.Poset (Set.elems $ Set.powerset xs,Set.isSubsetOf)
+powerSetPoset :: Ord a => Set.Set a -> PS.Poset (Set.Set a)
+powerSetPoset xs = PS.dual $ PS.Poset (Set.elems $ myPowerset xs,Set.isSubsetOf)
 
---fUStar :: ([a1] -> [a2]) -> PS.Poset [a2] -> PS.Poset [a1]
---fUStar f ys = [x | f x in ys]
+fUStar :: (Ord a1, Ord a2) => (a1 -> a2) -> Set.Set a1 -> Set.Set a2 -> Set.Set a1
+fUStar f xSet ys = Set.fromList [x | x <- Set.toList xSet , Set.member (f x) ys]
 
---fLStar :: ([a1] -> [a2]) -> PS.Poset [a1] -> PS.Poset [a2]
---fLStar f xs = [ y | and $ [ x in xs | y = f x]]
+--fLStar 
 
---fLShriek :: ([a1] -> [a2]) -> PS.Poset [a1] -> PS.Poset [a2]
---fLStar f xs = [ y | or $ [ x in xs | y = f x]]
+--fLShriek
