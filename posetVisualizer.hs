@@ -9,6 +9,8 @@ import Data.Maybe (fromMaybe)
 import Data.Colour.SRGB (sRGB24read)
 
 import qualified Math.Combinatorics.Poset as PS
+import qualified Math.Combinat.Partitions.Set as SetPart
+import qualified Data.Set as Set
 
 data Subset = Subset Int [Int]
 
@@ -90,8 +92,16 @@ connectSome2 (PS.Poset (set,po)) layeri layerj = [ (s1, s2) | s1 <- layeri
 withConnections2 ps bottom = (hasseDiagram2 ps bottom) # applyAll [connectOutside' (with & gaps       .~ small
                           & headLength .~ local 0.15) j k | (j,k) <- toConnect2 ps bottom]
 
+--partition Logic
+compareSetPartitions :: [[Int]] -> [[Int]] -> Bool
+compareSetPartitions sp1 sp2 = and [isXSubset (Set.fromList x) sp1 | x <- sp2 ] where 
+                               isXSubset x1 sp1' = or [ Set.isSubsetOf x1 (Set.fromList y) | y <- sp1' ]
+partitionPoset :: Int -> PS.Poset [[Int]]
+partitionPoset n = PS.Poset (map SetPart.fromSetPartition (SetPart.setPartitions n), compareSetPartitions)
+
 --example = pad 1.1 $ withConnections2 (PS.posetD 24) 1
-example = pad 1.1 $ withConnections2 (PS.posetB 5) []
+--example = pad 1.1 $ withConnections2 (PS.posetB 5) []
+example = pad 1.1 $ withConnections2 (partitionPoset 4) ([[1..4]])
 
 -- Bennett's laws
 --data possResources = (0,0,0) | (1,0,0) | (0,1,0) | (0,0,1) | (1,1,0) | (0,0,2)

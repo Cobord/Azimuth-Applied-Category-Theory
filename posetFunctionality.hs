@@ -1,4 +1,5 @@
 import qualified Math.Combinatorics.Poset as PS
+import qualified Math.Combinat.Partitions.Set as SetPart
 import qualified Data.Set as Set
 
 -- biggerThanAll p z xs tells if z is greater than or equal to all x from xs
@@ -89,3 +90,12 @@ partb1 = fLShriek exampleFunction exampleXSet exampleYSet exampleA1
 partb2 = fLShriek exampleFunction exampleXSet exampleYSet exampleA2
 partc1 = fLStar exampleFunction exampleXSet exampleYSet exampleA1
 partc2 = fLStar exampleFunction exampleXSet exampleYSet exampleA2
+
+--partition Logic
+compareSetPartitions :: SetPart.SetPartition -> SetPart.SetPartition -> Bool
+compareSetPartitions sp1 sp2 = and [isXSubset (Set.fromList x) sp1 | x <- SetPart.fromSetPartition sp2 ] where 
+                               isXSubset x1 sp1' = or [ Set.isSubsetOf x1 (Set.fromList y) | y <- SetPart.fromSetPartition sp1' ]
+partitionPoset :: Int -> PS.Poset SetPart.SetPartition
+partitionPoset n = PS.Poset (SetPart.setPartitions n, compareSetPartitions)
+
+--TODO: fUStar and fLShriek but this one has no fLStar
