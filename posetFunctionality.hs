@@ -1,3 +1,8 @@
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DataKinds, TypeFamilies, TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 import qualified Math.Combinatorics.Poset as PS
 import qualified Math.Combinat.Partitions.Set as SetPart
 import qualified Data.Set as Set
@@ -99,3 +104,48 @@ partitionPoset :: Int -> PS.Poset SetPart.SetPartition
 partitionPoset n = PS.Poset (SetPart.setPartitions n, compareSetPartitions)
 
 --TODO: fUStar and fLShriek but this one has no fLStar
+
+--free commutative monoidal preorder without any reactions
+
+data Nat = Z | S Nat deriving (Show)
+
+data SNat n where
+  SZ :: SNat Z
+  SS :: SNat n -> SNat (S n)
+
+data Vector a n where
+  Nil  :: Vector a Z
+  (:-) :: a -> Vector a n -> Vector a (S n)
+infixr 5 :-
+
+deriving instance Eq a => Eq (Vector a n)
+
+toList :: Vector a n -> [a]
+toList Nil = []
+toList (x :- xs) = x : toList xs
+instance Show a => Show (Vector a n) where
+  showsPrec d = showsPrec d . toList
+
+myReplicate :: SNat n -> a -> Vector a n
+myReplicate SZ     _ = Nil
+myReplicate (SS n) a = a :- myReplicate n a
+--takes a natural number n and a list of integers and puts them into a vector of length n
+-- default to 0 if the list is too short
+fromList:: SNat n -> [Int] -> Vector Int n
+fromList SZ _ = Nil
+fromList (SS n) [] = myReplicate (SS n) (0)
+fromList (SS n) (x:xs) = x :- (fromList n xs)
+
+-- takes an occupied natural number for the number of items like possible chemicals in a complex
+-- and a maximum number to say there are at most maxAmount of any one of them
+-- and produce the poset with no reactions only the product order
+noReactionsSet :: SNat n -> Int -> [Vector Int n]
+noReactionsSet SZ _ = [Nil]
+noReactionsSet (SS x) maxAmount = [x1 :- y | x1 <- [0..maxAmount], y <- (noReactionsSet x maxAmount)]
+
+productOrder :: Ord a => Vector a n -> Vector a n -> Bool
+productOrder Nil Nil = True
+productOrder (x:-xs) (y:-ys) = (x<=y) && productOrder xs ys
+
+noReactionsPoset :: SNat n -> Int -> PS.Poset (Vector Int n)
+noReactionsPoset numItems maxAmount = PS.Poset (mySet,productOrder) where mySet=(noReactionsSet numItems maxAmount)
