@@ -143,9 +143,10 @@ noReactionsSet :: SNat n -> Int -> [Vector Int n]
 noReactionsSet SZ _ = [Nil]
 noReactionsSet (SS x) maxAmount = [x1 :- y | x1 <- [0..maxAmount], y <- (noReactionsSet x maxAmount)]
 
+-- reversed because can throw away from 4 to get to 3, so 4 <= 3 in reachability ordering
 productOrder :: Ord a => Vector a n -> Vector a n -> Bool
 productOrder Nil Nil = True
-productOrder (x:-xs) (y:-ys) = (x<=y) && productOrder xs ys
+productOrder (x:-xs) (y:-ys) = (y<=x) && productOrder xs ys
 
 noReactionsPoset :: SNat n -> Int -> PS.Poset (Vector Int n)
 noReactionsPoset numItems maxAmount = PS.Poset (mySet,productOrder) where mySet=(noReactionsSet numItems maxAmount)

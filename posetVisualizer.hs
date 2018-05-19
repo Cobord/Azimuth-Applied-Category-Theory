@@ -12,6 +12,8 @@ import qualified Math.Combinatorics.Poset as PS
 import qualified Math.Combinat.Partitions.Set as SetPart
 import qualified Data.Set as Set
 
+--This is for the example where looking at subsets of [0..n] with n<10
+-- so to display them they are being concatenated together into a single integer
 data Subset = Subset Int [Int]
 
 addDigit :: Int -> Int -> Int
@@ -31,12 +33,15 @@ subsetsBySize n = map (map (Subset n))
                 . subsequences
                 $ [1..n]
 
+--length of interval is not correct, deprecated way of assigning level to each object of ps
 level :: PS.Poset t -> t -> t -> Int
 level ps bottom current = length $ PS.interval ps (bottom,current)
 
+-- finds the minimum length of getting to bottom and that is where the diagram should put this object
 level2 :: Eq t => PS.Poset t -> t -> t -> Int
 level2 (PS.Poset (set,po)) bottom current = maximum $ 0:[1+ level2 (PS.Poset (set,po)) bottom x | x<- set, x `po` current, x /= current]
 
+--put bottom at level 0, stuff that has nothing in between it and bottom at level 1, et cetera
 breakPosetByLevel :: Eq t => PS.Poset t -> t -> [[t]]
 breakPosetByLevel (PS.Poset (set,po)) bottom = groupBy (\x y -> (myLevel x == myLevel y)) $ sortBy (\x y -> (compare (myLevel x) (myLevel y))) set
                                               where myLevel = (\z -> (level2 (PS.Poset (set,po)) bottom z))
@@ -83,6 +88,8 @@ connectSome subs1 subs2 = [ (name s1, name s2) | s1 <- subs1
 withConnections n = (hasseDiagram n) # applyAll [connectOutside' (with & gaps       .~ small
                           & headLength .~ local 0.15) j k | (j,k) <- toConnect n]
 
+--take the poset and list of objects from two layers and put in the arrows
+-- these will end up being the adjacent layers, but that is not enforced yet
 toConnect2:: Eq t => PS.Poset t -> t -> [(t,t)]
 toConnect2 ps bottom = concat $ zipWith (connectSome2 ps) (broken) (tail $ broken) where broken=(breakPosetByLevel ps bottom)
 connectSome2 :: PS.Poset t -> [t] -> [t] -> [(t,t)]
