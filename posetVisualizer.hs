@@ -111,20 +111,4 @@ partitionPoset n = PS.Poset (map SetPart.fromSetPartition (SetPart.setPartitions
 --example = pad 1.1 $ withConnections2 (PS.posetB 5) []
 example = pad 1.1 $ withConnections2 (partitionPoset 4) ([[1..4]])
 
--- Bennett's laws
---data possResources = (0,0,0) | (1,0,0) | (0,1,0) | (0,0,1) | (1,1,0) | (0,0,2)
---resources = [(0,0,0),(1,0,0),(0,1,0),(0,0,1),(1,1,0),(0,0,2)]
--- any resource is better than none
---relation _ (0,0,0) = True
--- 1 qubit is better than or equal to an ebit, cbit or qubit
---relation (1,0,0) _ = True
--- superdense coding
---relation (1,1,0) (0,0,2) = True
---relation (1,1,0) (1,0,0) = True
---relation (1,1,0) (0,1,0) = True
---relation (0,0,2) (0,0,1) = True
-
---bennetExample = PS.poset(resources,relation)
---example = pad 1.1 $ withConnections2 bennetExample (0,0,0)
-
 main = mainWith (example :: Diagram B)
