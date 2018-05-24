@@ -136,6 +136,9 @@ fromList SZ _ = Nil
 fromList (SS n) [] = myReplicate (SS n) (0)
 fromList (SS n) (x:xs) = x :- (fromList n xs)
 
+addVectors :: SNat n -> Vector Int n -> Vector Int n -> Vector Int n
+addVectors n1 v1 v2 = fromList n1 $ zipWith (+) (toList v1) (toList v2)
+
 -- takes an occupied natural number for the number of items like possible chemicals in a complex
 -- and a maximum number to say there are at most maxAmount of any one of them
 -- and produce the poset with no reactions only the product order
@@ -150,3 +153,10 @@ productOrder (x:-xs) (y:-ys) = (y<=x) && productOrder xs ys
 
 noReactionsPoset :: SNat n -> Int -> PS.Poset (Vector Int n)
 noReactionsPoset numItems maxAmount = PS.Poset (mySet,productOrder) where mySet=(noReactionsSet numItems maxAmount)
+
+-- given the knowledge that x>=y in new partial order, all the ones that are automatic by
+-- a=z+x >= b=z+y
+-- untested but it does compile
+addReaction :: PS.Poset (Vector Int n) -> SNat n -> (Vector Int n,Vector Int n) -> PS.Poset (Vector Int n)
+addReaction (PS.Poset (set,oldpo)) n1 (x,y) = PS.Poset (set,newpo)
+                                          where newpo a b = ((a `oldpo` b) || (or [((a==addVectors n1 z x) && (b==addVectors n1 z y)) | z <- set]))
