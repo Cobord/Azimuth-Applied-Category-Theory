@@ -11,6 +11,7 @@ import Data.Colour.SRGB (sRGB24read)
 import qualified Math.Combinatorics.Poset as PS
 import qualified Math.Combinat.Partitions.Set as SetPart
 import qualified Data.Set as Set
+import qualified PosetFunctionality as PF
 
 --This is for the example where looking at subsets of [0..n] with n<10
 -- so to display them they are being concatenated together into a single integer

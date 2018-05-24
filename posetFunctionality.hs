@@ -3,9 +3,17 @@
 {-# LANGUAGE DataKinds, TypeFamilies, TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+module PosetFunctionality where
+
 import qualified Math.Combinatorics.Poset as PS
 import qualified Math.Combinat.Partitions.Set as SetPart
 import qualified Data.Set as Set
+
+getSet :: PS.Poset t1 -> [t1]
+getSet (PS.Poset (set,_)) = set
+
+getPO :: PS.Poset t1 -> (t1 -> t1 -> Bool)
+getPO (PS.Poset (_,po)) = po
 
 -- biggerThanAll p z xs tells if z is greater than or equal to all x from xs
 biggerThanAll:: PS.Poset t1 -> t1 -> [t1] -> Bool
@@ -160,3 +168,28 @@ noReactionsPoset numItems maxAmount = PS.Poset (mySet,productOrder) where mySet=
 addReaction :: PS.Poset (Vector Int n) -> SNat n -> (Vector Int n,Vector Int n) -> PS.Poset (Vector Int n)
 addReaction (PS.Poset (set,oldpo)) n1 (x,y) = PS.Poset (set,newpo)
                                           where newpo a b = ((a `oldpo` b) || (or [((a==addVectors n1 z x) && (b==addVectors n1 z y)) | z <- set]))
+
+myThree = (SS $ SS $ SS $ SZ)
+exampleNoReaction = noReactionsPoset myThree 4
+exampleWithReaction = addReaction exampleNoReaction myThree ((2:-0:-0:-Nil),(0:-1:-0:-Nil))
+
+--One Successful Test Case, now just mostly untested
+--x=exampleWithReaction
+--(getPO x) (3:-2:-1:-Nil) (1:-3:-1:-Nil)
+-- evaluates to True
+--x=exampleNoReaction
+--(getPO x) (3:-2:-1:-Nil) (1:-3:-1:-Nil)
+-- evaluates to False
+
+-- test case, has not been checked yet
+-- Bennett's laws
+--vectors are ordered as (# qubits,# ebits,# cbits)
+--there are at most 4 of any resource
+bennettExample0 = noReactionsPoset myThree 4
+--1 qubit to 1 ebit or cbit by measurement
+bennettExample1 = addReaction bennettExample0 myThree ((1:-0:-0:-Nil),(0:-1:-0:-Nil))
+bennettExample2 = addReaction bennettExample1 myThree ((1:-0:-0:-Nil),(0:-0:-1:-Nil))
+-- superdense coding
+bennettExample3 = addReaction bennettExample2 myThree ((1:-1:-0:-Nil),(0:-0:-2:-Nil))
+-- teleportation
+bennettExample = addReaction bennettExample3 myThree ((0:-1:-2:-Nil),(1:-0:-0:-Nil))
