@@ -35,7 +35,7 @@ instance UnitalQuantale Cost where
     myJoin [] = Nothing
     myJoin (x:xs) = greatestLowerBound x (myJoin xs)
 
-data MyVertices = VertexX | VertexY | VertexZ
+data MyVertices = VertexX | VertexY | VertexZ deriving (Eq,Read,Show)
 allVertices = [VertexX , VertexY , VertexZ]
 
 weightGraph :: MyVertices -> MyVertices -> Cost
@@ -51,4 +51,13 @@ weightGraph _ _ = Nothing
 multiplyQMatrices :: (UnitalQuantale q) => [b] -> (a -> b -> q) -> (b -> c -> q) -> a -> c -> q
 multiplyQMatrices allY matrixM matrixN x z = myJoin [monoidal (matrixM x y) (matrixN y z) | y <- allY]
 
+powerQMatrices :: (Eq a,UnitalQuantale q) => [a] -> (a -> a -> q) -> Int -> a -> a -> q
+powerQMatrices allX matrixM n x y
+               | n <= 0 = myJoin []
+               | n == 0 && (x==y) = unit
+               | n == 0 && (x/=y) = myJoin []
+               | n == 1 = matrixM x y
+               | n > 1 = multiplyQMatrices allX matrixM (powerQMatrices allX matrixM (n-1)) x y
+
 example = multiplyQMatrices allVertices weightGraph weightGraph VertexZ VertexX
+example2 = [powerQMatrices allVertices weightGraph 3 x y|x<-allVertices, y<-allVertices]
