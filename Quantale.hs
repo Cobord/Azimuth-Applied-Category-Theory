@@ -35,19 +35,6 @@ instance UnitalQuantale Cost where
     myJoin [] = Nothing
     myJoin (x:xs) = greatestLowerBound x (myJoin xs)
 
-data MyVertices = VertexX | VertexY | VertexZ deriving (Eq,Read,Show)
-allVertices = [VertexX , VertexY , VertexZ]
-
-weightGraph :: MyVertices -> MyVertices -> Cost
-weightGraph VertexX VertexX = unit
-weightGraph VertexX VertexY = Just 4
-weightGraph VertexX VertexZ = Just 3
-weightGraph VertexY VertexY = unit
-weightGraph VertexY VertexX = Just 3
-weightGraph VertexZ VertexZ = unit
-weightGraph VertexZ VertexY = Just 4
-weightGraph _ _ = Nothing
-
 multiplyQMatrices :: (UnitalQuantale q) => [b] -> (a -> b -> q) -> (b -> c -> q) -> a -> c -> q
 multiplyQMatrices allY matrixM matrixN x z = myJoin [monoidal (matrixM x y) (matrixN y z) | y <- allY]
 
@@ -59,5 +46,20 @@ powerQMatrices allX matrixM n x y
                | n == 1 = matrixM x y
                | n > 1 = multiplyQMatrices allX matrixM (powerQMatrices allX matrixM (n-1)) x y
 
+-- In 7 sketches this is on page 62 
+data MyVertices = VertexX | VertexY | VertexZ deriving (Eq,Read,Show)
+allVertices = [VertexX , VertexY , VertexZ]
+weightGraph :: MyVertices -> MyVertices -> Cost
+weightGraph VertexX VertexX = unit
+weightGraph VertexX VertexY = Just 4
+weightGraph VertexX VertexZ = Just 3
+weightGraph VertexY VertexY = unit
+weightGraph VertexY VertexX = Just 3
+weightGraph VertexZ VertexZ = unit
+weightGraph VertexZ VertexY = Just 4
+weightGraph _ _ = Nothing
+
+-- the Z, X entry of M_Y^2 in notation of 7Sketches
 example = multiplyQMatrices allVertices weightGraph weightGraph VertexZ VertexX
+-- all of the entries M_Y^3 read into a single list instead of a matrix
 example2 = [powerQMatrices allVertices weightGraph 3 x y|x<-allVertices, y<-allVertices]
