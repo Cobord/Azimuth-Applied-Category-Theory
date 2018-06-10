@@ -112,7 +112,6 @@ partitionPoset :: Int -> PS.Poset SetPart.SetPartition
 partitionPoset n = PS.Poset (SetPart.setPartitions n, compareSetPartitions)
 
 --TODO: fUStar and fLShriek but this one has no fLStar
--- compiled but not tested
 
 fUStarPartitionsHelper:: (Int -> Int) -> Int -> SetPart.SetPartition -> [[Int]]
 fUStarPartitionsHelper f xSize spYs = [Set.toList $ fUStar f (Set.fromList [1..xSize]) (Set.fromList myS) | myS <- SetPart.fromSetPartition spYs]
