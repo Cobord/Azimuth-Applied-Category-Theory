@@ -45,7 +45,7 @@ instance UnitalQuantale PowerSetStrings where
     monoidal a b = Set.fromList [fromA++fromB | fromA <- Set.toList a, fromB <- Set.toList b]
     unit = Set.fromList []
     myJoin = Set.unions
-
+	
 multiplyQMatrices :: (UnitalQuantale q) => [b] -> (a -> b -> q) -> (b -> c -> q) -> a -> c -> q
 multiplyQMatrices allY matrixM matrixN x z = myJoin [monoidal (matrixM x y) (matrixN y z) | y <- allY]
 
