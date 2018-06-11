@@ -129,7 +129,6 @@ relSubCatsExample = pad 1.1 $ withConnections2 (PS.Poset (allRelSubCats,relSubCa
 
 --example = pad 1.1 $ withConnections2 (PS.posetD 24) 1
 --example = pad 1.1 $ withConnections2 (PS.posetB 5) []
---example = relSubCatsExample
 example = pad 1.1 $ withConnections2 (partitionPoset 4) ([[1..4]])
 
 main = mainWith (example :: Diagram B)
