@@ -109,22 +109,28 @@ partitionPoset :: Int -> PS.Poset [[Int]]
 partitionPoset n = PS.Poset (map SetPart.fromSetPartition (SetPart.setPartitions n), compareSetPartitions)
 
 --Set,Par,Rel etc
--- add the others to finish off the 16
--- not tested. To do so replace example with relSubCatsExample in main
-data RelSubCats = CatRel | CatPar | CatSet | CatInj | CatSurj | CatBij deriving (Read,Eq,Show,Ord,Enum,Typeable)
+-- add the others to finish off the 16, but need their names for display purpose
+-- To put into visualizer replace example with relSubCatsExample in main
+data RelSubCats = CatRel | CatPar | CatSet | CatInj | CatSurj | CatBij | CatParSurj | CatParInj deriving (Read,Eq,Show,Ord,Enum,Typeable)
 instance IsName RelSubCats where
                         toName a = toName $ fromEnum a
 allRelSubCats :: [RelSubCats]
-allRelSubCats = [CatRel,CatPar,CatSet,CatInj,CatSurj,CatBij]
+allRelSubCats = [CatRel,CatPar,CatSet,CatInj,CatSurj,CatBij,CatParInj,CatParSurj]
+-- is it total, co-total, deterministic co-deterministic
+relSubCatsPOHelper :: RelSubCats -> [Bool]
+relSubCatsPOHelper CatBij = [True,True,True,True]
+relSubCatsPOHelper CatInj = [True,False,True,True]
+relSubCatsPOHelper CatSurj = [True,True,True,False]
+relSubCatsPOHelper CatSet = [True,False,True,False]
+relSubCatsPOHelper CatParInj = [False,False,True,True]
+relSubCatsPOHelper CatParSurj = [False,True,True,False]
+relSubCatsPOHelper CatPar = [False,False,True,False]
+relSubCatsPOHelper CatRel = [False,False,False,False]
 relSubCatsPO :: RelSubCats -> RelSubCats -> Bool
-relSubCatsPO CatRel _ = True
-relSubCatsPO CatPar CatSet = True
-relSubCatsPO _ CatBij = True
-relSubCatsPO CatSet CatInj = True
-relSubCatsPO CatSet CatSurj = True
-relSubCatsPO CatPar CatInj = True
-relSubCatsPO CatPar CatSurj = True
-relSubCatsPO _ _ = False
+relSubCatsPO x y = and [x0 <= y0 | (x0,y0) <- zip (relSubCatsPOHelper x) (relSubCatsPOHelper y)]
+
+isCatBijBottom = and $ map (\x -> relSubCatsPO x CatBij) allRelSubCats
+
 relSubCatsExample = pad 1.1 $ withConnections2 (PS.Poset (allRelSubCats,relSubCatsPO)) (CatBij)
 
 --example = pad 1.1 $ withConnections2 (PS.posetD 24) 1
