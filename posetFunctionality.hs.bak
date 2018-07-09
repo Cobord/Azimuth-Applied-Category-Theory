@@ -112,6 +112,7 @@ partitionPoset :: Int -> PS.Poset SetPart.SetPartition
 partitionPoset n = PS.Poset (SetPart.setPartitions n, compareSetPartitions)
 
 --TODO: fUStar and fLShriek but this one has no fLStar
+-- compiled but not tested
 
 fUStarPartitionsHelper:: (Int -> Int) -> Int -> SetPart.SetPartition -> [[Int]]
 fUStarPartitionsHelper f xSize spYs = [Set.toList $ fUStar f (Set.fromList [1..xSize]) (Set.fromList myS) | myS <- SetPart.fromSetPartition spYs]
@@ -175,7 +176,7 @@ noReactionsPoset numItems maxAmount = PS.Poset (mySet,productOrder) where mySet=
 
 -- given the knowledge that x>=y in new partial order, all the ones that are automatic by
 -- a=z+x >= b=z+y
--- untested but it does compile
+-- mostly untested but it does compile
 addReaction :: PS.Poset (Vector Int n) -> SNat n -> (Vector Int n,Vector Int n) -> PS.Poset (Vector Int n)
 addReaction (PS.Poset (set,oldpo)) n1 (x,y) = PS.Poset (set,newpo)
                                           where newpo a b = ((a `oldpo` b) || (or [((a==addVectors n1 z x) && (b==addVectors n1 z y)) | z <- set]))
@@ -185,12 +186,12 @@ exampleNoReaction = noReactionsPoset myThree 4
 exampleWithReaction = addReaction exampleNoReaction myThree ((2:-0:-0:-Nil),(0:-1:-0:-Nil))
 
 --One Successful Test Case, now just mostly untested
---x=exampleWithReaction
---(getPO x) (3:-2:-1:-Nil) (1:-3:-1:-Nil)
--- evaluates to True
---x=exampleNoReaction
---(getPO x) (3:-2:-1:-Nil) (1:-3:-1:-Nil)
--- evaluates to False
+testCase1=exampleWithReaction
+testCase1Conf=(getPO testCase1) (3:-2:-1:-Nil) (1:-3:-1:-Nil)
+-- evaluates to True as desired
+testCase2=exampleNoReaction
+testCase2Conf=(getPO testCase2) (3:-2:-1:-Nil) (1:-3:-1:-Nil)
+-- evaluates to False as desired
 
 -- test case, has not been checked yet
 -- Bennett's laws
@@ -204,3 +205,22 @@ bennettExample2 = addReaction bennettExample1 myThree ((1:-0:-0:-Nil),(0:-0:-1:-
 bennettExample3 = addReaction bennettExample2 myThree ((1:-1:-0:-Nil),(0:-0:-2:-Nil))
 -- teleportation
 bennettExample = addReaction bennettExample3 myThree ((0:-1:-2:-Nil),(1:-0:-0:-Nil))
+
+-- |The ordinal sum of two posets
+osum :: PS.Poset a -> PS.Poset b -> PS.Poset (Either a b)
+osum (PS.Poset (setA,poA)) (PS.Poset (setB,poB)) = PS.Poset (set,po)
+    where set = map Left setA ++ map Right setB
+          po (Left a1) (Left a2) = poA a1 a2
+          po (Right b1) (Right b2) = poB b1 b2
+          po (Left _) (Right _) = True
+          po _ _ = False
+
+-- collage of the profunctor between two posets, does not check that phi is monotone
+-- assumes you gave something sensible
+collage :: PS.Poset a -> PS.Poset b -> (a -> b -> Bool) -> PS.Poset (Either a b)
+collage (PS.Poset (setA,poA)) (PS.Poset (setB,poB)) phi = PS.Poset (set,po)
+    where set = map Left setA ++ map Right setB
+          po (Left a1) (Left a2) = poA a1 a2
+          po (Right b1) (Right b2) = poB b1 b2
+          po (Left a1) (Right b2) = phi a1 b2
+          po _ _ = False
