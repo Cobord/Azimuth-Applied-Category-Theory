@@ -28,7 +28,7 @@ greatestLowerBound (Just x) (Just y)
                                     | x<=y = Just x
                                     | otherwise = Just y
 
-instance UnitalQuantale Cost where
+instance (Num a, Ord a) => UnitalQuantale (Maybe a) where
     po Nothing Nothing = True
     po Nothing (Just x) = True
     po (Just x) Nothing = False

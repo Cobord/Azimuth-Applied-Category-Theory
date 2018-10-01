@@ -119,7 +119,7 @@ quantaleCollage upperBound enriched1 enriched2 connection = toQuantaleEnriched2 
 -- Example is untested but compiles
 data Example59C = North | South | East | West deriving (Show,Read,Eq)
 example59XSet :: [Example59C]
-example59XSet = [North,South,East,West]
+texample59XSet = [North,South,East,West]
 example59XMor :: Example59C -> Example59C -> Cost
 example59XMor South West = Just 30
 example59XMor South East = Just 20
