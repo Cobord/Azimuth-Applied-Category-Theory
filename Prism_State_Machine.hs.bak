@@ -10,13 +10,22 @@ import Data.Tree
 import Data.Maybe
 import qualified Data.List.NonEmpty as NEL
 
---data PossibleStates = CLOSED | LISTEN | SYN_RCVD | SYN_SENT | 
---                      ESTABLISHED | FIN_WAIT_1 | FIN_WAIT_2 |
---                      CLOSE_WAIT | CLOSING | LAST_ACK | TIME_WAIT
---                      deriving (Eq,Read,Show,Bounded,Enum)
-
-data PossibleStates = CLOSED | LISTEN | SYN_RCVD | SYN_SENT
+data PossibleStates = CLOSED | LISTEN | SYN_RCVD | SYN_SENT | 
+                      ESTABLISHED | FIN_WAIT_1 | FIN_WAIT_2 |
+                      CLOSE_WAIT | CLOSING | LAST_ACK | TIME_WAIT
                       deriving (Eq,Read,Show,Bounded,Enum)
+data Singleton n where
+   SingClosed :: Singleton CLOSED
+   SingListen :: Singleton LISTEN
+   SingSynRcvd :: Singleton SYN_RCVD
+   SingSynSent :: Singleton SYN_SENT
+   SingEst :: Singleton ESTABLISHED
+   SingFinWait1 :: Singleton FIN_WAIT_1
+   SingFinWait2 :: Singleton FIN_WAIT_2
+   SingCloseWait :: Singleton CLOSE_WAIT
+   SingClosing :: Singleton CLOSING
+   SingLastAck :: Singleton LAST_ACK
+   SingTimeWait :: Singleton TIME_WAIT
 
 split_list :: [a] -> ([a],[a])
 split_list [] = ([],[])
@@ -73,3 +82,28 @@ into_nested_eithers2 w z
                         | otherwise=((tail w),((head w) z))
 
 --into_nested_eithers3 x y = into_nested_eithers2 w z where (w,z)=into_nested_eithers x y
+
+data InternalDataState n where
+   Closed_Data :: a -> InternalDataState CLOSED
+   Listen_Data :: a -> InternalDataState LISTEN
+   SynRcvd_Data :: a -> InternalDataState SYN_RCVD
+   SynSent_Data :: a -> InternalDataState SYN_SENT
+   Est_Data :: a -> InternalDataState ESTABLISHED
+   FinWait1_Data :: a -> InternalDataState FIN_WAIT_1
+   FinWait2_Data :: a -> InternalDataState FIN_WAIT_2
+   CloseWait_Data :: a -> InternalDataState CLOSE_WAIT
+   Closing_Data :: a -> InternalDataState CLOSING
+   LastAck_Data :: a -> InternalDataState LAST_ACK
+   TimeWait_Data :: a -> InternalDataState TIME_WAIT
+   TimeoutMSL :: InternalDataState TIME_WAIT -> InternalDataState CLOSED
+   TimeoutRST :: InternalDataState SYN_RCVD -> InternalDataState CLOSED
+   Close :: InternalDataState SYN_SENT -> InternalDataState CLOSED
+   ActiveOpen :: InternalDataState CLOSED -> InternalDataState SYN_SENT
+   ACK :: InternalDataState LAST_ACK -> InternalDataState CLOSED
+   PassiveOpen :: InternalDataState CLOSED -> InternalDataState LISTEN
+-- all the other transitions
+
+--put all possibilities together as they appear in tree
+type All_eithered = Either (InternalDataState CLOSED) (InternalDataState LISTEN)
+
+--Singleton n -> (InternalDataState n -> InternalDataState n) -> All_eithered -> All_eithered
