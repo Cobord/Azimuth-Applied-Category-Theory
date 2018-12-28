@@ -95,15 +95,18 @@ data InternalDataState n where
    Closing_Data :: a -> InternalDataState CLOSING
    LastAck_Data :: a -> InternalDataState LAST_ACK
    TimeWait_Data :: a -> InternalDataState TIME_WAIT
-   TimeoutMSL :: InternalDataState TIME_WAIT -> InternalDataState CLOSED
-   TimeoutRST :: InternalDataState SYN_RCVD -> InternalDataState CLOSED
-   Close :: InternalDataState SYN_SENT -> InternalDataState CLOSED
-   ActiveOpen :: InternalDataState CLOSED -> InternalDataState SYN_SENT
-   ACK :: InternalDataState LAST_ACK -> InternalDataState CLOSED
-   PassiveOpen :: InternalDataState CLOSED -> InternalDataState LISTEN
+   deriving (Show)
+
+--transition_TimeoutMSL :: InternalDataState TIME_WAIT -> InternalDataState CLOSED
+--transition_TimeoutRST :: InternalDataState SYN_RCVD -> InternalDataState CLOSED
+--transition_Close :: InternalDataState SYN_SENT -> InternalDataState CLOSED
+--transition_ActiveOpen :: InternalDataState CLOSED -> InternalDataState SYN_SENT
+--transition_ACK :: InternalDataState LAST_ACK -> InternalDataState CLOSED
+--transition_PassiveOpen :: InternalDataState CLOSED -> InternalDataState LISTEN
 -- all the other transitions
 
 --put all possibilities together as they appear in tree
 type All_eithered = Either (InternalDataState CLOSED) (InternalDataState LISTEN)
 
 --Singleton n -> (InternalDataState n -> InternalDataState n) -> All_eithered -> All_eithered
+-- s f goes to something like over _Right (over _Right (f)) where _Right and _Left order is determined by s
