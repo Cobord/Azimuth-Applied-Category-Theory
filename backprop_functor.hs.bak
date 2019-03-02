@@ -2,6 +2,8 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 
+import qualified Data.Set as Set
+
 data Learner aSet bSet pSet = Learner{
     implementer :: pSet -> aSet -> bSet,
     update :: pSet -> aSet -> bSet -> pSet,
@@ -54,9 +56,9 @@ reshuffled2 (x,y,z,w) = ((x,z),(y,w))
 
 product_learners :: Learner aSet bSet pSet -> Learner cSet dSet qSet -> Learner (aSet,cSet) (bSet,dSet) (pSet,qSet)
 product_learners learner1 learner2 = Learner{implementer=(\tup -> monoidal_helper (implementer learner1 (fst tup),(implementer learner2) (snd tup))),
-                                             update =(\params inputs outputs -> fst . reshuffled2 $ product_learners_helper learner1 learner2 (fst params) (snd params) (fst inputs) (snd inputs) (fst outputs) (snd outputs)),
-                                             request=(\params inputs outputs -> snd . reshuffled2 $ product_learners_helper learner1 learner2 (fst params) (snd params) (fst inputs) (snd inputs) (fst outputs) (snd outputs))
-                                            }
+                                             update =(\params inputs outputs -> fst $ helpered learner1 learner2 params inputs outputs),
+                                             request=(\params inputs outputs -> snd $ helpered learner1 learner2  params inputs outputs)
+                                            } where helpered=(\learner1 learner2 params inputs outputs -> reshuffled2 $ product_learners_helper learner1 learner2 (fst params) (snd params) (fst inputs) (snd inputs) (fst outputs) (snd outputs))
 
 dot_prod :: (Num a) => [a] -> [a] -> a
 dot_prod list1 list2 = sum (map (\tup -> (fst tup)*(snd tup)) (zip list1 list2))
@@ -79,4 +81,20 @@ after_curry param_f =ParamFunction{implementer_simple=(implementer_simple param_
 make_ParamFunction_from_nn_layer_curried :: (Num a,Bounded inputs,Enum inputs) => (a->a) -> ParamFunction (inputs -> a) (outputs -> a) ((outputs,Maybe inputs) -> a)
 make_ParamFunction_from_nn_layer_curried = after_curry . make_ParamFunction_from_nn_layer
 
---with_error :: ParamFunction (inputs -> a) (outputs -> a) (parameters -> a) -> Learner (inputs -> a) (outputs -> a) (parameters -> a)
+--make_learner_from_nn_layer :: (Num a, Bounded inputs, Enum inputs) => (a -> a) -> Learner (inputs -> a) (outputs -> a) ((outputs,Maybe inputs) -> a)
+--make_learner_from_nn_layer activation activation_deriv = Learner{implementer=implementer_simple (make_ParamFunction_from_nn_layer_curried activation),
+--                                                update= --TODO
+--                                                request= --TODO
+--                                               }
+
+data OpenGame x s y r sigma = OpenGame{
+    play_function :: sigma -> x -> y,
+    coplay_function :: sigma -> x  -> r -> s,
+    best_response_function :: x -> (y -> r) -> (sigma -> Set.Set (sigma))
+}
+
+learner_to_game :: Learner xSet ySet pSet -> OpenGame xSet xSet ySet ySet pSet
+learner_to_game learner = OpenGame{play_function = implementer learner,
+                                    coplay_function = request learner,
+                                    best_response_function = (\h k p -> Set.singleton (update learner) p h (k ((implementer learner) p h)) )
+                                  }
