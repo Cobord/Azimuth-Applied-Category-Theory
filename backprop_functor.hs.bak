@@ -93,8 +93,25 @@ data OpenGame x s y r sigma = OpenGame{
     best_response_function :: x -> (y -> r) -> (sigma -> Set.Set (sigma))
 }
 
+data Learner_ND aSet bSet pSet = Learner_ND{
+    implementer_ND :: pSet -> aSet -> bSet,
+    request_ND :: pSet -> aSet -> bSet -> aSet,
+    update_ND :: aSet -> bSet -> pSet -> Set.Set pSet
+}
+
+choose_ND_learner :: Learner_ND aSet bSet pSet -> Learner aSet bSet pSet
+choose_ND_learner learner_nd = Learner{implementer=implementer_ND learner_nd,
+                                       request=request_ND learner_nd,
+                                       update = (\p_elem a_elem b_elem -> elemAt 0 $ (update_ND learner_nd) a_elem b_elem p_elem)
+                                      }
+
 learner_to_game :: Learner xSet ySet pSet -> OpenGame xSet xSet ySet ySet pSet
 learner_to_game learner = OpenGame{play_function = implementer learner,
                                     coplay_function = request learner,
-                                    best_response_function = (\h k p -> Set.singleton (update learner) p h (k ((implementer learner) p h)) )
+                                    best_response_function = (\h k p -> Set.singleton $ (update learner) p h (k ((implementer learner) p h)) )
                                   }
+
+learner_nd_to_game :: Learner_ND xSet ySet pSet -> OpenGame xSet xSet ySet ySet pSet
+learner_nd_to_game learner = OpenGame{play_function = implementer_ND learner,
+                                    coplay_function = request_ND learner,
+                                    best_response_function = (\h k p -> (update_ND learner) h (k ((implementer_ND learner) p h)) p )}
