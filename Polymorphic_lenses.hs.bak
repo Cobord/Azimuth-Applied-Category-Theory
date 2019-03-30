@@ -3,6 +3,7 @@
 {-# LANGUAGE LiberalTypeSynonyms #-}
 
 import Data.Profunctor
+import Control.Applicative
 
 data PolymorphicLens s1 s2 a1 a2 = PolymorphicLens{
     get :: s1-> a1,
@@ -46,9 +47,6 @@ instance Profunctor (PolymorphicLens2 s2 a2) where
 
 instance Profunctor (PolymorphicLens3 a1 a2) where
     dimap f g lens3 = PolymorphicLens3{get3 = (get3 lens3) . f, put3 = (\x y -> g $ (put3 lens3) (f x) y)}
-
-trimap1 :: (s1_prime -> s1) -> (a1 -> a1_prime) -> (s2 -> s2_prime) -> (PolymorphicLens s1 s2 a1 a2) -> (PolymorphicLens s1_prime s2 a1_prime a2)
-trimap1 f g h lens1 = identity_conversion_21 (dimap f g (identity_conversion_12 lens1))
 
 trimap :: (s1_prime -> s1) -> (a1 -> a1_prime) -> (s2 -> s2_prime) -> (PolymorphicLens s1 s2 a1 a2) -> (PolymorphicLens s1_prime s2_prime a1_prime a2)
 trimap f g h lens1 = identity_conversion_31 (dimap (id) (h) (identity_conversion_13 first_convert)) where
@@ -137,3 +135,13 @@ class (Functor f) => StrongFunctor f where
 instance StrongFunctor Maybe where
    left_Strength a_elem Nothing = Nothing
    left_Strength a_elem (Just b_elem) = Just (a_elem,b_elem)
+
+class (Functor f,Applicative f) => MonoidalFunctor f where
+   phi :: (f a1 ,f a2) -> f (a1,a2)
+   phiInv :: f (a1,a2) -> (f a1 ,f a2)
+
+modified_star :: (Applicative f) => (f s1 -> f(a2 -> s2)) -> f s1 -> f a2 -> f s2
+modified_star before x = (<*>) (before x)
+   
+--optic_C_to_D :: (MonoidalFunctor f) => PolymorphicLens s1 s2 a1 a2 -> PolymorphicLens (f s1) (f s2) (f a1) (f a2)
+--optic_C_to_D lens_c = PolymorphicLens{get = fmap (get lens_c),put = modified_star (fmap (\x->(put lens_c x)))}
