@@ -142,6 +142,16 @@ class (Functor f,Applicative f) => MonoidalFunctor f where
 
 modified_star :: (Applicative f) => (f s1 -> f(a2 -> s2)) -> f s1 -> f a2 -> f s2
 modified_star before x = (<*>) (before x)
-   
-optic_C_to_D :: (MonoidalFunctor f) => PolymorphicLens s1 s2 a1 a2 -> PolymorphicLens (f s1) (f s2) (f a1) (f a2)
+
+optic_C_to_D :: (Applicative f) => PolymorphicLens s1 s2 a1 a2 -> PolymorphicLens (f s1) (f s2) (f a1) (f a2)
 optic_C_to_D lens_c = PolymorphicLens{get = fmap (get lens_c),put = modified_star (fmap (\x->(put lens_c x)))}
+
+class Functor f => OpLaxSumMonoidal f where
+     either_functor :: f (Either s2 a1) -> Either (f s2) (f a1)
+
+matching_helper :: (OpLaxSumMonoidal f) => (s1 -> Either s2 a1) -> f s1 -> f (Either s2 a1)
+matching_helper g = fmap g
+
+prism_C_to_D :: (Functor f, OpLaxSumMonoidal f) => PolymorphicPrism s1 s2 a1 a2 -> PolymorphicPrism (f s1) (f s2) (f a1) (f a2)
+prism_C_to_D prism_c = PolymorphicPrism{review = fmap (review prism_c),
+                        matching=either_functor . matching_helper (matching prism_c)}
